@@ -21,27 +21,43 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Baixar e Instalar o Gradle Manualmente
+    - name: Baixar e Instalar o Gradle
       run: |
         wget https://services.gradle.org/distributions/gradle-7.5-bin.zip
         unzip -q gradle-7.5-bin.zip
         echo "$PWD/gradle-7.5/bin" >> $GITHUB_PATH
 
-    - name: Criar estrutura do projeto e arquivos de configuração
+    - name: Criar estrutura correta do projeto
       run: |
-        # Cria a estrutura de pastas do projeto Android
         mkdir -p app/src/main/java/com/seuusuario/netflixlite
         mkdir -p app/src/main/res/layout
 
-        # Cria o arquivo build.gradle do projeto raiz
-        echo 'buildscript { repositories { google() mavenCentral() } dependencies { classpath "com.android.tools.build:gradle:7.4.2" } } allprojects { repositories { google() mavenCentral() } }' > build.gradle
+        # Cria o build.gradle raiz de forma segura
+        cat << 'EOF' > build.gradle
+        buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath "com.android.tools.build:gradle:7.4.2"
+            }
+        }
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        EOF
 
-        # Cria o arquivo settings.gradle
+        # Cria o settings.gradle
         echo "include ':app'" > settings.gradle
 
-        # Cria o arquivo build.gradle do app com suporte ao Android 4.4 (minSdk 19)
+        # Cria o build.gradle do app
         cat << 'EOF' > app/build.gradle
         apply plugin: 'com.android.application'
+
         android {
             compileSdkVersion 33
             defaultConfig {
@@ -52,17 +68,14 @@ jobs:
                 versionName "1.0"
             }
         }
+
         dependencies {
             implementation 'androidx.appcompat:appcompat:1.6.1'
         }
         EOF
 
-        # Cria os arquivos Java, XML e Manifest que passamos antes, caso já não estejam na raiz
-        # (Se você já subiu o MainActivity.java, AndroidManifest.xml e activity_main.xml pelo git, eles serão usados)
-
     - name: Compilar o APK (Debug)
-      run: |
-        gradle assembleDebug --stacktrace
+      run: gradle assembleDebug --stacktrace
 
     - name: Salvar o APK gerado como artefato
       uses: actions/upload-artifact@v4
