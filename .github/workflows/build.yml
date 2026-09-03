@@ -54,7 +54,7 @@ jobs:
         # 2. settings.gradle
         echo "include ':app'" > settings.gradle
 
-        # 3. build.gradle do app (Sem dependências externas, usando Java puro)
+        # 3. build.gradle do app
         cat << 'EOF' > app/build.gradle
         apply plugin: 'com.android.application'
 
@@ -146,7 +146,7 @@ jobs:
                 settings.setDisplayZoomControls(false);
 
                 webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-                settings.setUserAgentString("Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36");
+                settings.setUserAgentString("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
                 webView.setWebViewClient(new WebViewClient() {
                     @Override
