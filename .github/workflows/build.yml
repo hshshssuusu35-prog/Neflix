@@ -21,13 +21,13 @@ jobs:
         distribution: 'zulu'
         java-version: '11'
 
-    - name: Baixar e Instalar o Gradle 6.8.3
+    - name: Baixar e Instalar o Gradle 6.7.1
       run: |
-        wget -q https://services.gradle.org/distributions/gradle-6.8.3-bin.zip
-        unzip -q gradle-6.8.3-bin.zip
-        echo "$PWD/gradle-6.8.3/bin" >> $GITHUB_PATH
+        wget -q https://services.gradle.org/distributions/gradle-6.7.1-bin.zip
+        unzip -q gradle-6.7.1-bin.zip
+        echo "$PWD/gradle-6.7.1/bin" >> $GITHUB_PATH
 
-    - name: Criar projeto completo e arquivos essenciais
+    - name: Criar projeto limpo sem dependências complexas
       run: |
         mkdir -p app/src/main/java/com/seuusuario/netflixlite
         mkdir -p app/src/main/res/layout
@@ -40,7 +40,7 @@ jobs:
                 mavenCentral()
             }
             dependencies {
-                classpath "com.android.tools.build:gradle:4.2.2"
+                classpath "com.android.tools.build:gradle:4.1.3"
             }
         }
         allprojects {
@@ -54,7 +54,7 @@ jobs:
         # 2. settings.gradle
         echo "include ':app'" > settings.gradle
 
-        # 3. build.gradle do app
+        # 3. build.gradle do app (Sem dependências externas, usando Java puro)
         cat << 'EOF' > app/build.gradle
         apply plugin: 'com.android.application'
 
@@ -67,10 +67,6 @@ jobs:
                 versionCode 1
                 versionName "1.0"
             }
-        }
-
-        dependencies {
-            implementation 'androidx.appcompat:appcompat:1.3.1'
         }
         EOF
 
@@ -136,7 +132,7 @@ jobs:
                 super.onCreate(savedInstanceState);
                 setContentView(R.layout.activity_main);
 
-                webView = findViewById(R.id.webViewNetflix);
+                webView = (WebView) findViewById(R.id.webViewNetflix);
                 WebSettings settings = webView.getSettings();
                 
                 settings.setJavaScriptEnabled(true);
@@ -183,7 +179,7 @@ jobs:
         EOF
 
     - name: Compilar o APK (Debug)
-      run: gradle assembleDebug --info
+      run: gradle assembleDebug --stacktrace
 
     - name: Salvar o APK gerado como artefato
       uses: actions/upload-artifact@v4
