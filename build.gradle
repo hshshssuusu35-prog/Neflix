@@ -1,0 +1,10 @@
+android {
+    compileSdkVersion 33 // Pode usar um SDK mais recente para compilar
+    defaultConfig {
+        applicationId "com.seuusuario.netflixlite"
+        minSdkVersion 19 // Suporte a Android 4.4.2 (KitKat)
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+    }
+}
