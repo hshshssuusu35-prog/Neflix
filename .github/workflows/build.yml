@@ -27,12 +27,13 @@ jobs:
         unzip -q gradle-7.5-bin.zip
         echo "$PWD/gradle-7.5/bin" >> $GITHUB_PATH
 
-    - name: Criar estrutura correta do projeto
+    - name: Criar projeto completo e arquivos essenciais
       run: |
+        # Criar pastas
         mkdir -p app/src/main/java/com/seuusuario/netflixlite
         mkdir -p app/src/main/res/layout
 
-        # Cria o build.gradle raiz de forma segura
+        # 1. build.gradle raiz
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -51,13 +52,12 @@ jobs:
         }
         EOF
 
-        # Cria o settings.gradle
+        # 2. settings.gradle
         echo "include ':app'" > settings.gradle
 
-        # Cria o build.gradle do app
+        # 3. build.gradle do app
         cat << 'EOF' > app/build.gradle
         apply plugin: 'com.android.application'
-
         android {
             compileSdkVersion 33
             defaultConfig {
@@ -68,9 +68,120 @@ jobs:
                 versionName "1.0"
             }
         }
-
         dependencies {
             implementation 'androidx.appcompat:appcompat:1.6.1'
+        }
+        EOF
+
+        # 4. AndroidManifest.xml
+        cat << 'EOF' > app/src/main/AndroidManifest.xml
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="com.seuusuario.netflixlite">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <application
+                android:allowBackup="true"
+                android:label="Netflix Lite"
+                android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+                <activity
+                    android:name=".MainActivity"
+                    android:configChanges="orientation|screenSize|keyboardHidden"
+                    android:label="Netflix Lite">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                        <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
+        EOF
+
+        # 5. activity_main.xml
+        cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/black">
+            <WebView
+                android:id="@+id/webViewNetflix"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+        </RelativeLayout>
+        EOF
+
+        # 6. MainActivity.java
+        cat << 'EOF' > app/src/main/java/com/seuusuario/netflixlite/MainActivity.java
+        package com.seuusuario.netflixlite;
+
+        import android.annotation.SuppressLint;
+        import android.app.Activity;
+        import android.graphics.Bitmap;
+        import android.os.Bundle;
+        import android.view.KeyEvent;
+        import android.view.View;
+        import android.webkit.WebSettings;
+        import android.webkit.WebView;
+        import android.webkit.WebViewClient;
+
+        public class MainActivity extends Activity {
+            private WebView webView;
+
+            @SuppressLint("SetJavaScriptEnabled")
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                setContentView(R.layout.activity_main);
+
+                webView = findViewById(R.id.webViewNetflix);
+                WebSettings settings = webView.getSettings();
+                
+                settings.setJavaScriptEnabled(true);
+                settings.setDomStorageEnabled(true);
+                settings.setDatabaseEnabled(true);
+                settings.setAppCacheEnabled(true);
+                settings.setAppCachePath(getApplicationContext().getCacheDir().getAbsolutePath());
+                settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+                settings.setLoadsImagesAutomatically(true);
+                settings.setBlockNetworkImage(false);
+                settings.setSupportZoom(false);
+                settings.setBuiltInZoomControls(false);
+                settings.setDisplayZoomControls(false);
+
+                webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                settings.setUserAgentString("Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36");
+
+                webView.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                        view.loadUrl(url);
+                        return true;
+                    }
+                });
+
+                webView.loadUrl("https://www.netflix.com/login");
+            }
+
+            @Override
+            public boolean onKeyDown(int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK && webView.canGoBack()) {
+                    webView.goBack();
+                    return true;
+                }
+                return super.onKeyDown(keyCode, event);
+            }
+
+            @Override
+            protected void onDestroy() {
+                if (webView != null) {
+                    webView.clearCache(true);
+                    webView.destroy();
+                }
+                super.onDestroy();
+            }
         }
         EOF
 
