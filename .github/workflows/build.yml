@@ -1,0 +1,37 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch: # Permite rodar o build manualmente pelo site do GitHub
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout do Código
+      uses: actions/checkout@v4
+
+    - name: Configurar o JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Configurar o Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Dar permissão de execução ao Gradle
+      run: chmod +x gradlew
+
+    - name: Compilar o APK (Debug)
+      run: ./gradlew assembleDebug
+
+    - name: Salvar o APK gerado como artefato
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-netflix-lite-debug
+        path: app/build/outputs/apk/debug/app-debug.apk
