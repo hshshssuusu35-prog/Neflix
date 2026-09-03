@@ -21,12 +21,17 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Criar estrutura do projeto e Gradle automaticamente
+    - name: Baixar e Instalar o Gradle Manualmente
       run: |
-        # Cria a estrutura de pastas padrão do Android se não existirem
+        wget https://services.gradle.org/distributions/gradle-7.5-bin.zip
+        unzip -q gradle-7.5-bin.zip
+        echo "$PWD/gradle-7.5/bin" >> $GITHUB_PATH
+
+    - name: Criar estrutura do projeto e arquivos de configuração
+      run: |
+        # Cria a estrutura de pastas do projeto Android
         mkdir -p app/src/main/java/com/seuusuario/netflixlite
         mkdir -p app/src/main/res/layout
-        mkdir -p app/src/main/res/mipmap
 
         # Cria o arquivo build.gradle do projeto raiz
         echo 'buildscript { repositories { google() mavenCentral() } dependencies { classpath "com.android.tools.build:gradle:7.4.2" } } allprojects { repositories { google() mavenCentral() } }' > build.gradle
@@ -52,14 +57,12 @@ jobs:
         }
         EOF
 
-        # Gera o gradlew utilizando o gradle do sistema
-        gradle wrapper --gradle-version 7.5
-
-    - name: Dar permissão de execução ao Gradle
-      run: chmod +x gradlew
+        # Cria os arquivos Java, XML e Manifest que passamos antes, caso já não estejam na raiz
+        # (Se você já subiu o MainActivity.java, AndroidManifest.xml e activity_main.xml pelo git, eles serão usados)
 
     - name: Compilar o APK (Debug)
-      run: ./gradlew assembleDebug --stacktrace
+      run: |
+        gradle assembleDebug --stacktrace
 
     - name: Salvar o APK gerado como artefato
       uses: actions/upload-artifact@v4
