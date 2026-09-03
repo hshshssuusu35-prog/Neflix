@@ -21,18 +21,18 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Baixar e Instalar o Gradle
+    - name: Baixar e Instalar o Gradle 8.5
       run: |
-        wget https://services.gradle.org/distributions/gradle-7.5-bin.zip
-        unzip -q gradle-7.5-bin.zip
-        echo "$PWD/gradle-7.5/bin" >> $GITHUB_PATH
+        wget https://services.gradle.org/distributions/gradle-8.5-bin.zip
+        unzip -q gradle-8.5-bin.zip
+        echo "$PWD/gradle-8.5/bin" >> $GITHUB_PATH
 
     - name: Criar projeto completo e arquivos essenciais
       run: |
         mkdir -p app/src/main/java/com/seuusuario/netflixlite
         mkdir -p app/src/main/res/layout
 
-        # 1. build.gradle raiz
+        # 1. build.gradle raiz com AGP 8.2.0 (totalmente compatível com Gradle 8.5 e Java 17)
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -40,7 +40,7 @@ jobs:
                 mavenCentral()
             }
             dependencies {
-                classpath "com.android.tools.build:gradle:7.4.2"
+                classpath "com.android.tools.build:gradle:8.2.0"
             }
         }
         allprojects {
@@ -52,21 +52,49 @@ jobs:
         EOF
 
         # 2. settings.gradle
-        echo "include ':app'" > settings.gradle
+        cat << 'EOF' > settings.gradle
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = "NetflixLite"
+        include ':app'
+        EOF
 
         # 3. build.gradle do app
         cat << 'EOF' > app/build.gradle
-        apply plugin: 'com.android.application'
+        plugins {
+            id 'com.android.application'
+        }
+
         android {
-            compileSdkVersion 33
+            namespace 'com.seuusuario.netflixlite'
+            compileSdk 34
+
             defaultConfig {
                 applicationId "com.seuusuario.netflixlite"
-                minSdkVersion 19
-                targetSdkVersion 33
+                minSdk 19
+                targetSdk 34
                 versionCode 1
                 versionName "1.0"
             }
+
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
         }
+
         dependencies {
             implementation 'androidx.appcompat:appcompat:1.6.1'
         }
@@ -74,8 +102,7 @@ jobs:
 
         # 4. AndroidManifest.xml
         cat << 'EOF' > app/src/main/AndroidManifest.xml
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-            package="com.seuusuario.netflixlite">
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
             <uses-permission android:name="android.permission.INTERNET" />
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
             <application
@@ -85,6 +112,7 @@ jobs:
                 <activity
                     android:name=".MainActivity"
                     android:configChanges="orientation|screenSize|keyboardHidden"
+                    android:exported="true"
                     android:label="Netflix Lite">
                     <intent-filter>
                         <action android:name="android.intent.action.MAIN" />
@@ -112,7 +140,7 @@ jobs:
         </RelativeLayout>
         EOF
 
-        # 6. MainActivity.java (Sem métodos de cache descontinuados)
+        # 6. MainActivity.java
         cat << 'EOF' > app/src/main/java/com/seuusuario/netflixlite/MainActivity.java
         package com.seuusuario.netflixlite;
 
