@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch: # Permite rodar o build manualmente pelo site do GitHub
+  workflow_dispatch:
 
 jobs:
   build:
@@ -28,7 +28,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Compilar o APK (Debug)
-      run: ./gradlew assembleDebug
+      run: ./gradlew assembleDebug --stacktrace
 
     - name: Salvar o APK gerado como artefato
       uses: actions/upload-artifact@v4
