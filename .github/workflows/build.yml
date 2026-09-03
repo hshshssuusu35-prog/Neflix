@@ -29,7 +29,6 @@ jobs:
 
     - name: Criar projeto completo e arquivos essenciais
       run: |
-        # Criar pastas
         mkdir -p app/src/main/java/com/seuusuario/netflixlite
         mkdir -p app/src/main/res/layout
 
@@ -113,13 +112,12 @@ jobs:
         </RelativeLayout>
         EOF
 
-        # 6. MainActivity.java
+        # 6. MainActivity.java (Sem métodos de cache descontinuados)
         cat << 'EOF' > app/src/main/java/com/seuusuario/netflixlite/MainActivity.java
         package com.seuusuario.netflixlite;
 
         import android.annotation.SuppressLint;
         import android.app.Activity;
-        import android.graphics.Bitmap;
         import android.os.Bundle;
         import android.view.KeyEvent;
         import android.view.View;
@@ -142,8 +140,6 @@ jobs:
                 settings.setJavaScriptEnabled(true);
                 settings.setDomStorageEnabled(true);
                 settings.setDatabaseEnabled(true);
-                settings.setAppCacheEnabled(true);
-                settings.setAppCachePath(getApplicationContext().getCacheDir().getAbsolutePath());
                 settings.setCacheMode(WebSettings.LOAD_DEFAULT);
                 settings.setLoadsImagesAutomatically(true);
                 settings.setBlockNetworkImage(false);
@@ -177,7 +173,6 @@ jobs:
             @Override
             protected void onDestroy() {
                 if (webView != null) {
-                    webView.clearCache(true);
                     webView.destroy();
                 }
                 super.onDestroy();
